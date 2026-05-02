@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 import logging
-from app import NCRClassifier
+from src.classifier import NCRClassifier
 
 # Mock logger for testing
 logger = logging.getLogger('TestLogger')
@@ -64,3 +64,12 @@ def test_classify_case_insensitivity(classifier):
     
     assert result_df['İş Kalemi'].iloc[0] == 'Kaba İş'
     assert result_df['İş Kalemi'].iloc[1] == 'İnce İş'
+
+def test_semantic_scoring(classifier):
+    # Test text containing both kaba ("beton", "kolon") and ince ("sıva") keywords.
+    # Score for Kaba = 2, Score for Ince = 1 -> Result should be "Kaba İş"
+    data = {'Açıklama': ['Beton kolon yüzeyinde ince sıva bozuklukları var.']}
+    df = pd.DataFrame(data)
+    
+    result_df = classifier.classify_dataframe(df, 'Açıklama')
+    assert result_df['İş Kalemi'].iloc[0] == 'Kaba İş'
