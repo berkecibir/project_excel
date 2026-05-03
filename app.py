@@ -35,7 +35,22 @@ class NCRClassifier:
         "Kaba İş": ["beton", "demir", "kalıp", "paspayı", "kolon", "kiriş", "döşeme", "çatlak", "segregasyon"],
         "İnce İş": ["seramik", "boya", "sıva", "alçı", "diş yapmış", "fayans", "derz", "parke", "şap", "kaplama"],
         "Doğrama": ["pencere", "kapı", "cam", "menteşe", "alüminyum", "pvc", "kulp", "fitil", "pervaz"],
-        "İş Güvenliği (İSG)": ["güvenlik", "levha", "baret", "kemer", "file", "korkuluk", "isg", "uyarı", "şantiye", "iskele"],
+        "İş Güvenliği (İSG)": [
+            # Ekipman eksiklikleri (olumlu ve olumsuz türevler)
+            "baret", "baretsiz", "kask", "kasksız",
+            "kemer", "kemersiz", "emniyet kemeri",
+            "file", "filesiz", "güvenlik filesi",
+            "korkuluk", "korkuluksuz",
+            "eldiven", "eldivensiz",
+            "yelek", "yeleği",
+            "gözlük", "maske",
+            # Genel İSG ifadeleri
+            "güvenlik", "isg", "iş güvenliği", "ppe",
+            "levha", "uyarı", "ikaz",
+            "iskele", "platform",
+            "şantiye",                          # Şantiye tek başına da İSG sinyali
+            "baretsiz çalış", "ekipmansız", "önlemsiz"
+        ],
         "Elektrik İşleri": ["elektrik", "kablo", "pano", "sigorta", "priz", "anahtar", "aydınlatma", "armatür", "tava"]
     }
     
@@ -53,15 +68,19 @@ class NCRClassifier:
         text_series = df[column_name].astype(str)
         
         # Bazı kategorilerin önceliği (ağırlığı) daha fazladır.
-        # Örneğin: İnce İş detaydır, "Doğrama" ve "İnce" çakışırsa İnce kazansın diye ağırlığı 1.6 yaptık.
+        # İSG ağırlığı yüksek tutulur: "kolon kalıp sökümünde baretsiz çalışıyor" gibi
+        # cümlelerde Kaba İş kelimeleri (kolon+kalıp=2) ile İSG çakışmaması için
+        # İSG ağırlığı 2.5 yapıldı (1 İSG kelimesi >= 2.5 skor > 2 Kaba İş skoru).
         AGIRLIKLAR = {
             "İnce İş": 1.6,
-            "İş Güvenliği (İSG)": 2.0
+            "İş Güvenliği (İSG)": 2.5
         }
         
         for kategori, kelimeler in self.KATEGORILER.items():
             # Tüm kelimeleri aramak için pattern oluşturuyoruz.
-            # Her bir kelimenin metin içinde kaç defa geçtiğini sayıyoruz.
+            # NOT: Python regex \b ASCII tabanlıdır, Türkçe karakterlerde çalışmaz.
+            # Bu nedenle düz substring eşleşmesi kullanılır.
+            # İSG için 'baretsiz', 'kemersiz' gibi olumsuz türevler listeye eklenmiştir.
             pattern = '|'.join([re.escape(k) for k in kelimeler])
             count = text_series.str.count(pattern, flags=re.IGNORECASE)
             

@@ -46,6 +46,31 @@ def test_classify_isg(classifier):
     assert result_df['İş Kalemi'].iloc[0] == 'İş Güvenliği (İSG)'
     assert result_df['İş Kalemi'].iloc[1] == 'İş Güvenliği (İSG)'
 
+def test_classify_isg_baretsiz_kaba_is_cakismasi(classifier):
+    """
+    Gerçek hayat senaryosu: 'Kolon kalıp sökümünde işçi baretsiz çalışıyor.'
+    Kaba İş kelimeleri (kolon + kalıp = 2 skor) olmasına rağmen
+    İSG ağırlığı (2.5) sayesinde doğru kategoriye atanmalı.
+    """
+    data = {'Açıklama': [
+        'Kolon kalıp sökümünde işçi baretsiz çalışıyor.',   # Raporlanan senaryo
+        'Döşeme betonunda işçi kemersiz çalışıyor.',         # Kaba İş + kemersiz
+        'Kiriş altında eldivensiz çalışılıyor.',             # Kaba İş + eldivensiz
+        'Kolon demirleri kasksız montaj yapılıyor.',         # Kaba İş + kasksız
+    ]}
+    df = pd.DataFrame(data)
+    
+    result_df = classifier.classify_dataframe(df, 'Açıklama')
+    
+    assert result_df['İş Kalemi'].iloc[0] == 'İş Güvenliği (İSG)', \
+        "Baretsiz çalışma İSG'ye atanmalı, Kaba İş'e değil!"
+    assert result_df['İş Kalemi'].iloc[1] == 'İş Güvenliği (İSG)', \
+        "Kemersiz çalışma İSG'ye atanmalı!"
+    assert result_df['İş Kalemi'].iloc[2] == 'İş Güvenliği (İSG)', \
+        "Eldivensiz çalışma İSG'ye atanmalı!"
+    assert result_df['İş Kalemi'].iloc[3] == 'İş Güvenliği (İSG)', \
+        "Kasksız montaj İSG'ye atanmalı!"
+
 def test_classify_diger_belirsiz(classifier):
     data = {'Açıklama': ['Yemekhanede yemekler kötü.', 'Servis aracı geç geldi.']}
     df = pd.DataFrame(data)
