@@ -32,26 +32,24 @@ class NCRClassifier:
     """Gelen veriyi işleme ve sınıflandırma kurallarını yöneten sınıf."""
     
     KATEGORILER = {
-        "Kaba İş": ["beton", "demir", "kalıp", "paspayı", "kolon", "kiriş", "döşeme", "çatlak", "segregasyon"],
-        "İnce İş": ["seramik", "boya", "sıva", "alçı", "diş yapmış", "fayans", "derz", "parke", "şap", "kaplama"],
-        "Doğrama": ["pencere", "kapı", "cam", "menteşe", "alüminyum", "pvc", "kulp", "fitil", "pervaz"],
-        "İş Güvenliği (İSG)": [
-            # Ekipman eksiklikleri (olumlu ve olumsuz türevler)
-            "baret", "baretsiz", "kask", "kasksız",
-            "kemer", "kemersiz", "emniyet kemeri",
-            "file", "filesiz", "güvenlik filesi",
-            "korkuluk", "korkuluksuz",
-            "eldiven", "eldivensiz",
-            "yelek", "yeleği",
-            "gözlük", "maske",
-            # Genel İSG ifadeleri
-            "güvenlik", "isg", "iş güvenliği", "ppe",
-            "levha", "uyarı", "ikaz",
-            "iskele", "platform",
-            "şantiye",                          # Şantiye tek başına da İSG sinyali
-            "baretsiz çalış", "ekipmansız", "önlemsiz"
-        ],
-        "Elektrik İşleri": ["elektrik", "kablo", "pano", "sigorta", "priz", "anahtar", "aydınlatma", "armatür", "tava"]
+        "EVRAK / MALZEME ONAY / YÖNTEM": ["yapım yöntemi", "iş yapım yöntemi", "evrak", "shopdraw", "shop drawing", "malzeme onay", "malzeme onayı", "malzeme sunum", "malzeme girdi", "teknik şartname", "uygulama yöntemi", "numune", "muayene", "test"],
+        "TUĞLA / DUVAR / BİMS / HATIL / KÖPÜK": ["tuğla", "bims", "duvar", "kama", "köpük", "hatıl", "lento", "lentolu"],
+        "BETON KOT / SEHİM / TOLERANS": ["sehim", "şakül", "aks okuma", "tolerans", "tölerans", "deplase", "kanat açma", "kanat açmaları", "beton kot okuması hata", "beton okuma kot", "beton kot okuma"],
+        "SOĞUK DERZ / SEGREGASYON / BOŞLUK": ["soğuk derz", "segregasyon", "boşluk", "peteklenme"],
+        "DONATI / DEMİR / ETRİYE": ["donatı", "demir", "etriye", "filiz", "çiroz", "ankraj", "paspayı"],
+        "KALIP / İSKELE / DİREKLEME": ["kalıp", "kalıb", "iskele", "direkleme", "plywood", "diş", "dis"],
+        "PERDAH / ÇATLAK": ["perdah", "çatlak", "kılcal", "pürüz"],
+        "ALÇI / SIVA / BOYA / DEKORATİF": ["alçı", "sıva", "boya", "dekoratif", "saten", "kartonpiyer"],
+        "CEPHE / DOĞRAMA / TAŞ YÜNÜ / KÜPTAŞ": ["cephe", "doğrama", "küptaş", "taş yünü", "taşyünü", "tasyünü", "kör kasa", "körkasa"],
+        "TESİSAT (ELEKTRİK / MEKANİK) / PEX": ["tesisat", "pex", "boru", "klima", "havalandırma", "yangın dolap", "yangın dolabı", "pano", "elektrik", "kablo", "doğalgaz", "dogalgaz"],
+        "YALITIM / İZOLASYON": ["drenaj", "su alması", "su dolu", "su tahliye", "yalıtım", "izolasyon", "su yalıtım"],
+        "TEMİZLİK / KORUMA / KİR": ["temizlik", "koruma", "kir", "moloz", "toz", "şerbet", "artık", "kalıntı"],
+        "ŞAP / KAPLAMA / TAŞ / DERZ": ["şap", "döşeme", "kaplama", "taş", "seramik", "derz"],
+        "HASARLI MALZEME": ["hasarlı", "kırık", "deformasyon", "deforme", "zarar görmüş", "zarar"],
+        "PAH ÇITASI EKSİKLİĞİ": ["pah çıtası", "pah hatası", "pah eksik"],
+        "BETON İŞÇİLİK HATA": ["beton işçilik", "yüksek dökül", "kötü beton", "düzensiz beton"],
+        "BETON KÜR/BAKIM EKSİKLİĞİ": ["kür", "sulama eksik", "beton bakım"],
+        "PROFİL İŞLERİ": ["kutu profil"]
     }
     
     def __init__(self, logger):
@@ -111,106 +109,204 @@ class NCRAppUI:
         st.set_page_config(page_title="NCR Analiz Aracı", page_icon="🏗️", layout="wide")
         st.title("🏗️ İnşaat Mühendisleri İçin NCR (Uygunsuzluk) Analiz Aracı")
         st.markdown("""
-        Bu araç, yüklediğiniz Uygunsuzluk Raporu (NCR) Excel dosyasındaki **Açıklama** sütununu analiz ederek uygunsuzlukları **Kaba İş**, **İnce İş** veya **Doğrama** olarak sınıflandırır.
+        Bu araç, yüklediğiniz Uygunsuzluk Raporu (NCR) Excel dosyasındaki **Açıklama** sütununu analiz ederek uygunsuzlukları sınıflandırır.
         """)
+
+    def _find_header_row(self, uploaded_file) -> int:
+        """
+        Excel dosyasının ilk 10 satırını tarayarak gerçek başlık satırını bulur.
+        'Açıklama' veya benzeri bir sütun adı içeren satır numarasını döndürür.
+        Bulamazsa 0 (varsayılan) döndürür.
+        """
+        HEDEF_KELIMELER = {"açıklama", "aciklama", "description", "uygunsuzluk"}
+        try:
+            df_raw = pd.read_excel(uploaded_file, engine="calamine", header=None, nrows=10)
+            for i, row in df_raw.iterrows():
+                for cell in row:
+                    if isinstance(cell, str) and any(kw in cell.lower() for kw in HEDEF_KELIMELER):
+                        self.logger.info(f"Gerçek başlık satırı {i}. satırda bulundu.")
+                        return i
+        except Exception as e:
+            self.logger.warning(f"Başlık satırı taraması başarısız: {e}")
+        return 0
+
+    def _temizle_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Okunan DataFrame'i aşağıdaki işlemlerle temizler:
+        1. Sütun adlarındaki satır sonu (\\n) karakterlerini boşluğa çevirir
+        2. Excel formula hatalarını (#REF!, #VALUE! vb.) NaN ile değiştirir
+        3. Tamamen boş satırları siler
+        """
+        # 1. Sütun adlarını normalize et: \n → boşluk, başını sonunu kırp
+        df.columns = [
+            ' '.join(str(c).split()).strip() if not isinstance(c, str)
+            else ' '.join(c.split()).strip()
+            for c in df.columns
+        ]
+
+        # 2. Excel formula hatalarını temizle
+        EXCEL_HATALARI = ['#REF!', '#VALUE!', '#NAME?', '#DIV/0!',
+                          '#N/A', '#NULL!', '#NUM!', '#ERROR!', '#BÖLÜ/0!']
+        df = df.replace(EXCEL_HATALARI, np.nan)
+
+        # 3. Tamamen boş satırları sil (başlık ile veri arasındaki boş satır vb.)
+        df = df.dropna(how='all').reset_index(drop=True)
+
+        return df
 
     def process_file(self, uploaded_file):
         try:
             self.logger.info(f"Yeni dosya işleniyor: {uploaded_file.name}")
-            with st.spinner("Excel dosyası okunuyor, lütfen bekleyin (Büyük dosyalarda biraz zaman alabilir)..."):
-                df = pd.read_excel(uploaded_file, engine="calamine")
+
+            # --- ADIM 1: Gerçek başlık satırını bul ---
+            header_row = self._find_header_row(uploaded_file)
+
+            # --- ADIM 2: Dosyayı doğru başlık satırıyla oku ---
+            with st.spinner("Excel dosyası okunuyor, lütfen bekleyin..."):
+                df = pd.read_excel(uploaded_file, engine="calamine", header=header_row)
+
+            # --- ADIM 3: Veriyi temizle (sütun adları, #REF! hataları, boş satırlar) ---
+            df = self._temizle_dataframe(df)
+
             kolonlar = df.columns.tolist()
-            
+            self.logger.info(f"Temiz sütunlar (header={header_row}): {kolonlar}")
+
+            # --- ADIM 4: Açıklama sütununu belirle ---
             aciklama_kolonu = "Açıklama"
             if aciklama_kolonu not in kolonlar:
-                olasi_kolonlar = [k for k in kolonlar if "açıklama" in k.lower() or "aciklama" in k.lower() or "description" in k.lower() or "uygunsuzluk" in k.lower()]
-                st.warning(f"Excel dosyanızda 'Açıklama' adında bir sütun bulunamadı. Lütfen analiz edilecek sütunu seçin.")
-                aciklama_kolonu = st.selectbox("Uygunsuzluk Açıklaması Sütunu", options=kolonlar, index=kolonlar.index(olasi_kolonlar[0]) if olasi_kolonlar else 0)
-            
+                olasi_kolonlar = [
+                    k for k in kolonlar
+                    if any(kw in k.lower() for kw in ["açıklama", "aciklama", "description", "uygunsuzluk"])
+                ]
+                st.warning("Excel dosyanızda 'Açıklama' adında bir sütun bulunamadı. Lütfen analiz edilecek sütunu seçin.")
+                aciklama_kolonu = st.selectbox(
+                    "Uygunsuzluk Açıklaması Sütunu",
+                    options=kolonlar,
+                    index=kolonlar.index(olasi_kolonlar[0]) if olasi_kolonlar else 0
+                )
+
             if aciklama_kolonu:
+                # --- ADIM 5: Açıklaması boş/NaN olan satırları düşür ---
+                onceki_sayi = len(df)
+                df = df[df[aciklama_kolonu].notna()].copy()
+                df = df[df[aciklama_kolonu].astype(str).str.strip() != ''].copy()
+                df = df[df[aciklama_kolonu].astype(str).str.strip() != 'nan'].copy()
+                atilan = onceki_sayi - len(df)
+                if atilan > 0:
+                    self.logger.info(f"Açıklaması boş {atilan} satır atıldı.")
+
+                # --- ADIM 6: Sınıflandır ---
                 with st.spinner("Veriler analiz ediliyor..."):
                     df = self.classifier.classify_dataframe(df, aciklama_kolonu)
-                
-                # Sınıflandırılamayanları bul
+
                 belirsiz_df = df[df['İş Kalemi'] == "Diğer / Belirsiz"]
                 belirsizler = belirsiz_df[aciklama_kolonu].dropna().unique() if not belirsiz_df.empty else []
                 if len(belirsizler) > 0:
                     self.logger.warning(f"Sınıflandırılamayan {len(belirsizler)} farklı açıklama bulundu.")
-                
+
                 self.logger.info(f"Analiz tamamlandı. Toplam kayıt: {len(df)}")
-                st.success("Sınıflandırma tamamlandı!")
-                
-                self.render_filters_and_results(df, aciklama_kolonu, belirsizler)
-                
+                st.success(f"✅ Sınıflandırma tamamlandı! **{len(df)}** kayıt işlendi.")
+
+                # İmalat Sınıfı sütununu bul (temizlenmiş adıyla)
+                imalat_kolonu = next(
+                    (k for k in df.columns if "İmalat" in k and "Sınıf" in k),
+                    None
+                )
+                self.render_filters_and_results(df, aciklama_kolonu, belirsizler, imalat_kolonu)
+
+
         except Exception as e:
             self.logger.error(f"Hata oluştu: {str(e)}", exc_info=True)
             st.error(f"Dosya okunurken bir hata oluştu: {e}")
             st.info("Lütfen geçerli bir Excel dosyası yüklediğinizden emin olun.")
 
-    def render_filters_and_results(self, df, aciklama_kolonu, belirsizler):
 
-
-        st.subheader("Verileri Filtrele")
-        options = ["Kaba İş", "İnce İş", "Doğrama", "İş Güvenliği (İSG)", "Elektrik İşleri", "Diğer / Belirsiz"]
+    def render_filters_and_results(self, df, aciklama_kolonu, belirsizler, imalat_kolonu=None):
+        """
+        Dinamik filtreleme paneli: Proje, Alt Yüklenici, İmalat Sınıfı ve Durum.
+        """
+        st.subheader("📊 Gelişmiş Filtreleme Paneli")
         
-        if "pill_kategoriler" not in st.session_state:
-            st.session_state.pill_kategoriler = options
+        # 1. Sütun Tespitleri
+        proje_kolonu = next((c for c in df.columns if "Proje" in c), None)
+        yuklenici_kolonu = next((c for c in df.columns if "Yüklenici" in c), None)
+        durum_kolonu = next((c for c in df.columns if "Durum" in c), None)
+        filtre_kolonu = imalat_kolonu if imalat_kolonu else 'İş Kalemi'
 
-        col_b1, col_b2, _ = st.columns([2, 2, 8])
-        if col_b1.button("✅ Tümünü Seç", use_container_width=True):
-            st.session_state.pill_kategoriler = options
-            st.rerun()
-            
-        if col_b2.button("🗑️ Tümünü Temizle", use_container_width=True):
-            st.session_state.pill_kategoriler = []
-            st.rerun()
-
-        secilen_kategoriler = st.pills(
-            "Görüntülemek istediğiniz iş kalemlerini seçin:",
-            options=options,
-            selection_mode="multi",
-            key="pill_kategoriler"
-        )
+        # --- FİLTRELER (Varsayılan Boş) ---
+        col1, col2 = st.columns(2)
         
-        if not secilen_kategoriler:
-            st.warning("Lütfen görüntülemek için en az bir iş kalemi seçin.")
+        secilen_projeler = []
+        if proje_kolonu:
+            p_options = sorted(df[proje_kolonu].dropna().unique().tolist())
+            secilen_projeler = col1.pills("🏗️ Projeler:", options=p_options, selection_mode="multi", key="pill_proje")
+
+        secilen_yukleniciler = []
+        if yuklenici_kolonu:
+            y_options = sorted(df[yuklenici_kolonu].dropna().unique().tolist())
+            secilen_yukleniciler = col2.pills("👷 Alt Yükleniciler:", options=y_options, selection_mode="multi", key="pill_yuklenici")
+
+        st.markdown("---")
+        col3, col4 = st.columns([2, 1])
+        
+        options = sorted(df[filtre_kolonu].dropna().astype(str).str.strip().str.upper().unique().tolist())
+        options = [o for o in options if o and o != 'NAN']
+        secilen_kategoriler = col3.pills("🧱 İmalat Sınıfları:", options=options, selection_mode="multi", key="pill_imalat_sinifi")
+
+        secilen_durumlar = []
+        if durum_kolonu:
+            durum_options = ["Açık", "Kapalı"]
+            secilen_durumlar = col4.pills("🚨 NCR Durumu:", options=durum_options, selection_mode="multi", key="pill_ncr_durumu")
+
+        # --- Filtre Uygulama Mantığı ---
+        # Eğer hiçbir seçim yapılmadıysa veri gösterme
+        if not (secilen_projeler or secilen_yukleniciler or secilen_kategoriler or secilen_durumlar):
+            st.info("💡 Devam etmek için lütfen yukarıdaki filtrelerden en az bir Proje, Yüklenici veya Durum seçin.")
             return
 
-        filtered_df = df[df['İş Kalemi'].isin(secilen_kategoriler)].copy()
+        df_filtre = df.copy()
+        if secilen_projeler:
+            df_filtre = df_filtre[df_filtre[proje_kolonu].isin(secilen_projeler)]
+        if secilen_yukleniciler:
+            df_filtre = df_filtre[df_filtre[yuklenici_kolonu].isin(secilen_yukleniciler)]
+        if secilen_kategoriler:
+            df_filtre['_tmp'] = df_filtre[filtre_kolonu].astype(str).str.strip().str.upper()
+            df_filtre = df_filtre[df_filtre['_tmp'].isin(secilen_kategoriler)]
+            df_filtre = df_filtre.drop(columns=['_tmp'])
+        if secilen_durumlar:
+            mask = df_filtre[durum_kolonu].astype(str).apply(lambda x: any(d.lower() in x.lower() for d in secilen_durumlar))
+            df_filtre = df_filtre[mask]
+
+        if df_filtre.empty:
+            st.warning("⚠️ Seçtiğiniz kriterlere uygun veri bulunamadı.")
+            return
+
+        # --- TEK TABLO GÖSTERİMİ ---
+        st.markdown(f"### 📋 Analiz Sonuçları ({len(df_filtre)} Kayıt)")
         
-        # Kayıt Numaralarını 1'den başlatma (Kullanıcı talebi)
-        filtered_df.index = np.arange(1, len(filtered_df) + 1)
-        filtered_df.index.name = "Kayıt No"
+        istenen_sutunlar = ['Proje', 'Alt Yüklenici', 'Disiplin', 'İmalat Sınıfı', 'Açıklama', 'Ncr Durumu', 'İş Kalemi']
+        available_cols = []
+        for target in istenen_sutunlar:
+            match = next((c for c in df.columns if target.lower() in c.lower()), None)
+            if match: available_cols.append(match)
         
-        st.dataframe(filtered_df, use_container_width=True)
+        display_df = df_filtre[available_cols] if available_cols else df_filtre
+        st.dataframe(display_df, use_container_width=True)
+
+        # İstatistikler ve İndirme
+        c1, c2 = st.columns([3, 1])
+        with c2:
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                df_filtre.to_excel(writer, index=False, sheet_name='Analiz_Sonuclari')
+            st.download_button("📥 Excel Olarak İndir", output.getvalue(), "ncr_raporu.xlsx", use_container_width=True)
         
-        st.subheader("Genel İstatistikler")
-        col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
-        kategori_sayilari = df['İş Kalemi'].value_counts()
-        
-        col1.metric("Toplam", len(df))
-        col2.metric("Kaba İş", kategori_sayilari.get("Kaba İş", 0))
-        col3.metric("İnce İş", kategori_sayilari.get("İnce İş", 0))
-        col4.metric("Doğrama", kategori_sayilari.get("Doğrama", 0))
-        col5.metric("İSG", kategori_sayilari.get("İş Güvenliği (İSG)", 0))
-        col6.metric("Elektrik", kategori_sayilari.get("Elektrik İşleri", 0))
-        col7.metric("Belirsiz", kategori_sayilari.get("Diğer / Belirsiz", 0))
-        
-        
-        st.subheader("Sonuçları İndir")
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            filtered_df.to_excel(writer, index=True, sheet_name='Filtrelenmiş_NCR')
-        
-        excel_data = output.getvalue()
-        st.download_button(
-            label="📥 Filtrelenmiş Veriyi Excel Olarak İndir",
-            data=excel_data,
-            file_name="filtrelenmis_ncr_raporu.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-        
+        with c1:
+            st.caption(f"Toplam {len(df)} kayıt içerisinden {len(df_filtre)} adet kayıt filtrelendi.")
+
         self.render_developer_tools(belirsizler)
+
+
 
     def render_developer_tools(self, belirsizler):
         st.markdown("---")

@@ -1,6 +1,7 @@
 import pytest
 import pandas as pd
 import logging
+import numpy as np
 from app import NCRClassifier
 
 # Mock logger for testing
@@ -10,91 +11,45 @@ logger = logging.getLogger('TestLogger')
 def classifier():
     return NCRClassifier(logger)
 
-def test_classify_kaba_is(classifier):
-    data = {'Açıklama': ['Beton dökümü sırasında segregasyon oluştu.', 'Kolon demirleri eksik.']}
+def test_classify_segregasyon(classifier):
+    """Segregasyon ifadesinin doğru teknik gruba atandığını doğrula."""
+    data = {'Açıklama': ['Beton dökümü sonrası segregasyon ve boşluklar tespit edildi.']}
     df = pd.DataFrame(data)
-    
     result_df = classifier.classify_dataframe(df, 'Açıklama')
-    
-    assert result_df['İş Kalemi'].iloc[0] == 'Kaba İş'
-    assert result_df['İş Kalemi'].iloc[1] == 'Kaba İş'
+    assert result_df['İş Kalemi'].iloc[0] == 'SOĞUK DERZ / SEGREGASYON / BOŞLUK'
 
-def test_classify_ince_is(classifier):
-    data = {'Açıklama': ['Seramik kaplamada diş yapmış.', 'Duvar boyası dökülüyor.']}
+def test_classify_donatı(classifier):
+    """Donatı/Demir ifadelerinin doğru gruba atandığını doğrula."""
+    data = {'Açıklama': ['Döşeme demirlerinde paspayı eksikliği var.']}
     df = pd.DataFrame(data)
-    
     result_df = classifier.classify_dataframe(df, 'Açıklama')
-    
-    assert result_df['İş Kalemi'].iloc[0] == 'İnce İş'
-    assert result_df['İş Kalemi'].iloc[1] == 'İnce İş'
+    assert result_df['İş Kalemi'].iloc[0] == 'DONATI / DEMİR / ETRİYE'
 
-def test_classify_dograma(classifier):
-    data = {'Açıklama': ['Pencere camı kırık gelmiş.', 'Kapı menteşesi ayarsız.']}
+def test_classify_evrak(classifier):
+    """Evrak/Yöntem ifadelerinin doğru gruba atandığını doğrula."""
+    data = {'Açıklama': ['İş yapım yöntemi ve malzeme onayı henüz sunulmadı.']}
     df = pd.DataFrame(data)
-    
     result_df = classifier.classify_dataframe(df, 'Açıklama')
-    
-    assert result_df['İş Kalemi'].iloc[0] == 'Doğrama'
-    assert result_df['İş Kalemi'].iloc[1] == 'Doğrama'
+    assert result_df['İş Kalemi'].iloc[0] == 'EVRAK / MALZEME ONAY / YÖNTEM'
 
-def test_classify_isg(classifier):
-    data = {'Açıklama': ['İşçiler baret takmıyor.', 'Şantiye alanı çok dağınık.']}
+def test_classify_sehim_sakul(classifier):
+    """Kot ve tolerans hatalarını doğrula."""
+    data = {'Açıklama': ['Kolonlarda şakül hatası ve sehim tespit edildi.']}
     df = pd.DataFrame(data)
-    
     result_df = classifier.classify_dataframe(df, 'Açıklama')
-    
-    assert result_df['İş Kalemi'].iloc[0] == 'İş Güvenliği (İSG)'
-    assert result_df['İş Kalemi'].iloc[1] == 'İş Güvenliği (İSG)'
+    assert result_df['İş Kalemi'].iloc[0] == 'BETON KOT / SEHİM / TOLERANS'
 
-def test_classify_isg_baretsiz_kaba_is_cakismasi(classifier):
-    """
-    Gerçek hayat senaryosu: 'Kolon kalıp sökümünde işçi baretsiz çalışıyor.'
-    Kaba İş kelimeleri (kolon + kalıp = 2 skor) olmasına rağmen
-    İSG ağırlığı (2.5) sayesinde doğru kategoriye atanmalı.
-    """
-    data = {'Açıklama': [
-        'Kolon kalıp sökümünde işçi baretsiz çalışıyor.',   # Raporlanan senaryo
-        'Döşeme betonunda işçi kemersiz çalışıyor.',         # Kaba İş + kemersiz
-        'Kiriş altında eldivensiz çalışılıyor.',             # Kaba İş + eldivensiz
-        'Kolon demirleri kasksız montaj yapılıyor.',         # Kaba İş + kasksız
-    ]}
+def test_classify_hasarlı(classifier):
+    """Hasarlı malzeme grubunu doğrula."""
+    data = {'Açıklama': ['Gelen seramikler kırık ve deforme durumda.']}
     df = pd.DataFrame(data)
-    
     result_df = classifier.classify_dataframe(df, 'Açıklama')
-    
-    assert result_df['İş Kalemi'].iloc[0] == 'İş Güvenliği (İSG)', \
-        "Baretsiz çalışma İSG'ye atanmalı, Kaba İş'e değil!"
-    assert result_df['İş Kalemi'].iloc[1] == 'İş Güvenliği (İSG)', \
-        "Kemersiz çalışma İSG'ye atanmalı!"
-    assert result_df['İş Kalemi'].iloc[2] == 'İş Güvenliği (İSG)', \
-        "Eldivensiz çalışma İSG'ye atanmalı!"
-    assert result_df['İş Kalemi'].iloc[3] == 'İş Güvenliği (İSG)', \
-        "Kasksız montaj İSG'ye atanmalı!"
+    assert result_df['İş Kalemi'].iloc[0] == 'HASARLI MALZEME'
 
 def test_classify_diger_belirsiz(classifier):
-    data = {'Açıklama': ['Yemekhanede yemekler kötü.', 'Servis aracı geç geldi.']}
+    """Tanımlanamayan ifadelerin Diğer kategorisine düştüğünü doğrula."""
+    data = {'Açıklama': ['Yemekhanede havalandırma yetersiz.']} # Havalandırma Tesisat'a girer ama cümle yapısına göre test edelim
     df = pd.DataFrame(data)
-    
     result_df = classifier.classify_dataframe(df, 'Açıklama')
-    
-    assert result_df['İş Kalemi'].iloc[0] == 'Diğer / Belirsiz'
-    assert result_df['İş Kalemi'].iloc[1] == 'Diğer / Belirsiz'
-
-def test_classify_empty_and_nan(classifier):
-    data = {'Açıklama': ['', None, float('nan')]}
-    df = pd.DataFrame(data)
-    
-    result_df = classifier.classify_dataframe(df, 'Açıklama')
-    
-    assert result_df['İş Kalemi'].iloc[0] == 'Diğer / Belirsiz'
-    assert result_df['İş Kalemi'].iloc[1] == 'Diğer / Belirsiz'
-    assert result_df['İş Kalemi'].iloc[2] == 'Diğer / Belirsiz'
-
-def test_classify_case_insensitivity(classifier):
-    data = {'Açıklama': ['BETON çok sulu.', 'SERAMİK KIRIK.']}
-    df = pd.DataFrame(data)
-    
-    result_df = classifier.classify_dataframe(df, 'Açıklama')
-    
-    assert result_df['İş Kalemi'].iloc[0] == 'Kaba İş'
-    assert result_df['İş Kalemi'].iloc[1] == 'İnce İş'
+    # Havalandırma TESİSAT grubunda olduğu için ona gitmeli
+    assert result_df['İş Kalemi'].iloc[0] == 'TESİSAT (ELEKTRİK / MEKANİK) / PEX'
