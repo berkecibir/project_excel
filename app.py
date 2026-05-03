@@ -109,8 +109,8 @@ class NCRAppUI:
                 aciklama_kolonu = st.selectbox("Uygunsuzluk Açıklaması Sütunu", options=kolonlar, index=kolonlar.index(olasi_kolonlar[0]) if olasi_kolonlar else 0)
             
             if aciklama_kolonu:
-                st.info("Veriler analiz ediliyor...")
-                df = self.classifier.classify_dataframe(df, aciklama_kolonu)
+                with st.spinner("Veriler analiz ediliyor..."):
+                    df = self.classifier.classify_dataframe(df, aciklama_kolonu)
                 
                 # Sınıflandırılamayanları bul
                 belirsiz_df = df[df['İş Kalemi'] == "Diğer / Belirsiz"]
@@ -129,19 +129,7 @@ class NCRAppUI:
             st.info("Lütfen geçerli bir Excel dosyası yüklediğinizden emin olun.")
 
     def render_filters_and_results(self, df, aciklama_kolonu, belirsizler):
-        st.subheader("Genel İstatistikler")
-        col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
-        kategori_sayilari = df['İş Kalemi'].value_counts()
-        
-        col1.metric("Toplam", len(df))
-        col2.metric("Kaba İş", kategori_sayilari.get("Kaba İş", 0))
-        col3.metric("İnce İş", kategori_sayilari.get("İnce İş", 0))
-        col4.metric("Doğrama", kategori_sayilari.get("Doğrama", 0))
-        col5.metric("İSG", kategori_sayilari.get("İş Güvenliği (İSG)", 0))
-        col6.metric("Elektrik", kategori_sayilari.get("Elektrik İşleri", 0))
-        col7.metric("Belirsiz", kategori_sayilari.get("Diğer / Belirsiz", 0))
 
-        st.divider()
 
         st.subheader("Verileri Filtrele")
         options = ["Kaba İş", "İnce İş", "Doğrama", "İş Güvenliği (İSG)", "Elektrik İşleri", "Diğer / Belirsiz"]
@@ -176,6 +164,19 @@ class NCRAppUI:
         filtered_df.index.name = "Kayıt No"
         
         st.dataframe(filtered_df, use_container_width=True)
+        
+        st.subheader("Genel İstatistikler")
+        col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+        kategori_sayilari = df['İş Kalemi'].value_counts()
+        
+        col1.metric("Toplam", len(df))
+        col2.metric("Kaba İş", kategori_sayilari.get("Kaba İş", 0))
+        col3.metric("İnce İş", kategori_sayilari.get("İnce İş", 0))
+        col4.metric("Doğrama", kategori_sayilari.get("Doğrama", 0))
+        col5.metric("İSG", kategori_sayilari.get("İş Güvenliği (İSG)", 0))
+        col6.metric("Elektrik", kategori_sayilari.get("Elektrik İşleri", 0))
+        col7.metric("Belirsiz", kategori_sayilari.get("Diğer / Belirsiz", 0))
+        
         
         st.subheader("Sonuçları İndir")
         output = io.BytesIO()
