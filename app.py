@@ -4,6 +4,8 @@ import io
 import logging
 import os
 import sys
+import re
+import numpy as np
 
 class LoggerSetup:
     """Uygulama loglama ayarlarını yöneten sınıf."""
@@ -39,21 +41,30 @@ class NCRClassifier:
         self.logger = logger
         
     def classify_dataframe(self, df, column_name):
-        """Vektörel (Regex) işlemler kullanarak DataFrame'i yüksek performansla sınıflandırır."""
-        self.logger.info(f"'{column_name}' sütunu için sınıflandırma başlatılıyor. Toplam satır: {len(df)}")
+        """Vektörel (Regex) skorlama kullanarak DataFrame'i yüksek performansla sınıflandırır."""
+        self.logger.info(f"'{column_name}' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: {len(df)}")
         
-        # Varsayılan olarak tüm satırları 'Diğer / Belirsiz' yap
-        df['İş Kalemi'] = "Diğer / Belirsiz"
+        # Skorları tutacağımız DataFrame (aynı index ile)
+        scores_df = pd.DataFrame(index=df.index)
         
-        # Sütunun tüm boş olmayan verilerini string'e çevirip küçük harf yapalım (hız için regex (?i) kullanacağız)
-        # NaN değerler "Diğer / Belirsiz" olarak kalacak
+        # Sütunu string olarak al
+        text_series = df[column_name].astype(str)
         
         for kategori, kelimeler in self.KATEGORILER.items():
-            # Kelimeleri regex formatında birleştir: (kelime1|kelime2|kelime3)
-            pattern = '|'.join(kelimeler)
-            # case=False ile büyük/küçük harf duyarsız arama yapıyoruz, na=False ile boş hücreleri es geçiyoruz.
-            mask = df[column_name].astype(str).str.contains(pattern, case=False, na=False, regex=True)
-            df.loc[mask, 'İş Kalemi'] = kategori
+            # Tüm kelimeleri aramak için pattern oluşturuyoruz.
+            # Her bir kelimenin metin içinde kaç defa geçtiğini sayıyoruz.
+            pattern = '|'.join([re.escape(k) for k in kelimeler])
+            scores_df[kategori] = text_series.str.count(pattern, flags=re.IGNORECASE)
+        
+        # En yüksek skora sahip kategoriyi bul
+        # max(axis=1) ile her satırın en yüksek skorunu buluyoruz.
+        max_scores = scores_df.max(axis=1)
+        
+        # Skorlarin en büyüğünü alan kategoriyi idxmax ile seçiyoruz
+        best_categories = scores_df.idxmax(axis=1)
+        
+        # Eğer en yüksek skor 0 ise, hiçbir kelime bulunamamıştır -> "Diğer / Belirsiz"
+        df['İş Kalemi'] = best_categories.where(max_scores > 0, "Diğer / Belirsiz")
             
         return df
 
@@ -108,25 +119,31 @@ class NCRAppUI:
         secilen_kategoriler = st.multiselect(
             "Görüntülemek istediğiniz iş kalemlerini seçin:",
             options=["Kaba İş", "İnce İş", "Doğrama", "Diğer / Belirsiz"],
-            default=["Kaba İş", "İnce İş", "Doğrama"]
+            default=["Kaba İş", "İnce İş", "Doğrama", "Diğer / Belirsiz"]
         )
         
-        filtered_df = df[df['İş Kalemi'].isin(secilen_kategoriler)]
+        filtered_df = df[df['İş Kalemi'].isin(secilen_kategoriler)].copy()
+        
+        # Kayıt Numaralarını 1'den başlatma (Kullanıcı talebi)
+        filtered_df.index = np.arange(1, len(filtered_df) + 1)
+        filtered_df.index.name = "Kayıt No"
+        
         st.dataframe(filtered_df, use_container_width=True)
         
         st.subheader("İstatistikler")
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4, col5 = st.columns(5)
         kategori_sayilari = df['İş Kalemi'].value_counts()
         
         col1.metric("Toplam NCR", len(df))
         col2.metric("Kaba İş", kategori_sayilari.get("Kaba İş", 0))
         col3.metric("İnce İş", kategori_sayilari.get("İnce İş", 0))
         col4.metric("Doğrama", kategori_sayilari.get("Doğrama", 0))
+        col5.metric("Belirsiz", kategori_sayilari.get("Diğer / Belirsiz", 0))
         
         st.subheader("Sonuçları İndir")
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            filtered_df.to_excel(writer, index=False, sheet_name='Filtrelenmiş_NCR')
+            filtered_df.to_excel(writer, index=True, sheet_name='Filtrelenmiş_NCR')
         
         excel_data = output.getvalue()
         st.download_button(
