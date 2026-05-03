@@ -37,8 +37,17 @@ def test_classify_dograma(classifier):
     assert result_df['İş Kalemi'].iloc[0] == 'Doğrama'
     assert result_df['İş Kalemi'].iloc[1] == 'Doğrama'
 
-def test_classify_diger_belirsiz(classifier):
+def test_classify_isg(classifier):
     data = {'Açıklama': ['İşçiler baret takmıyor.', 'Şantiye alanı çok dağınık.']}
+    df = pd.DataFrame(data)
+    
+    result_df = classifier.classify_dataframe(df, 'Açıklama')
+    
+    assert result_df['İş Kalemi'].iloc[0] == 'İş Güvenliği (İSG)'
+    assert result_df['İş Kalemi'].iloc[1] == 'İş Güvenliği (İSG)'
+
+def test_classify_diger_belirsiz(classifier):
+    data = {'Açıklama': ['Yemekhanede yemekler kötü.', 'Servis aracı geç geldi.']}
     df = pd.DataFrame(data)
     
     result_df = classifier.classify_dataframe(df, 'Açıklama')

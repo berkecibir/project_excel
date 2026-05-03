@@ -56,3 +56,70 @@
 2026-05-03 11:46:06,306 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 9
 2026-05-03 11:46:06,316 - WARNING - Sınıflandırılamayan 1 farklı açıklama bulundu.
 2026-05-03 11:46:06,317 - INFO - Analiz tamamlandı. Toplam kayıt: 9
+2026-05-03 11:56:23,857 - INFO - Yeni dosya işleniyor: Edge Case Excel.xlsx
+2026-05-03 11:56:23,883 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 9
+2026-05-03 11:56:23,898 - INFO - Analiz tamamlandı. Toplam kayıt: 9
+2026-05-03 11:56:40,721 - INFO - Yeni dosya işleniyor: Edge Case Excel.xlsx
+2026-05-03 11:56:40,734 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 9
+2026-05-03 11:56:40,744 - INFO - Analiz tamamlandı. Toplam kayıt: 9
+2026-05-03 11:57:16,697 - INFO - Yeni dosya işleniyor: Edge Case Excel.xlsx
+2026-05-03 11:57:16,715 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 9
+2026-05-03 11:57:16,734 - INFO - Analiz tamamlandı. Toplam kayıt: 9
+2026-05-03 11:57:37,187 - INFO - Yeni dosya işleniyor: Excel Test 2.xlsx
+2026-05-03 11:57:37,207 - INFO - 'NCR Açıklaması' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 4
+2026-05-03 11:57:37,222 - INFO - Analiz tamamlandı. Toplam kayıt: 4
+2026-05-03 11:59:11,885 - INFO - Yeni dosya işleniyor: Excel test.xlsx
+2026-05-03 11:59:11,906 - INFO - 'NCR Açıklaması' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 5
+2026-05-03 11:59:11,920 - INFO - Analiz tamamlandı. Toplam kayıt: 5
+2026-05-03 11:59:45,685 - INFO - Yeni dosya işleniyor: Excel test 3 (1).xlsx
+2026-05-03 11:59:45,712 - INFO - 'NCR Açıklaması' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 5
+2026-05-03 11:59:45,731 - INFO - Analiz tamamlandı. Toplam kayıt: 5
+2026-05-03 11:59:57,294 - INFO - Yeni dosya işleniyor: filtrelenmis_ncr_raporu.xlsx
+2026-05-03 11:59:57,332 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 9
+2026-05-03 11:59:57,349 - INFO - Analiz tamamlandı. Toplam kayıt: 9
+2026-05-03 12:11:24,521 - INFO - Yeni dosya işleniyor: Edge Case 2.xlsx
+2026-05-03 12:11:24,550 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 7
+2026-05-03 12:11:24,572 - WARNING - Sınıflandırılamayan 1 farklı açıklama bulundu.
+2026-05-03 12:11:24,572 - INFO - Analiz tamamlandı. Toplam kayıt: 7
+2026-05-03 12:35:20,465 - INFO - Yeni dosya işleniyor: Edge Case 2.xlsx
+2026-05-03 12:35:20,491 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 7
+2026-05-03 12:35:20,516 - INFO - Analiz tamamlandı. Toplam kayıt: 7
+2026-05-03 12:35:26,513 - INFO - Yeni dosya işleniyor: Edge Case 2.xlsx
+2026-05-03 12:35:26,530 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 7
+2026-05-03 12:35:26,541 - INFO - Analiz tamamlandı. Toplam kayıt: 7
+2026-05-03 12:37:50,393 - INFO - Yeni dosya işleniyor: Edge Case 2.xlsx
+2026-05-03 12:37:50,411 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 7
+2026-05-03 12:37:50,429 - INFO - Analiz tamamlandı. Toplam kayıt: 7
+2026-05-03 12:37:55,156 - INFO - Yeni dosya işleniyor: Edge Case 2.xlsx
+2026-05-03 12:37:55,173 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 7
+2026-05-03 12:37:55,186 - INFO - Analiz tamamlandı. Toplam kayıt: 7
+2026-05-03 12:38:38,156 - INFO - Yeni dosya işleniyor: Edge Case 2.xlsx
+2026-05-03 12:38:38,172 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 7
+2026-05-03 12:38:38,198 - INFO - Analiz tamamlandı. Toplam kayıt: 7
+2026-05-03 12:38:39,928 - INFO - Yeni dosya işleniyor: Edge Case 2.xlsx
+2026-05-03 12:38:39,943 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 7
+2026-05-03 12:38:39,951 - INFO - Analiz tamamlandı. Toplam kayıt: 7
+2026-05-03 12:38:41,853 - INFO - Yeni dosya işleniyor: Edge Case 2.xlsx
+2026-05-03 12:38:41,880 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 7
+2026-05-03 12:38:41,903 - INFO - Analiz tamamlandı. Toplam kayıt: 7
+2026-05-03 12:38:42,318 - INFO - Yeni dosya işleniyor: Edge Case 2.xlsx
+2026-05-03 12:38:42,329 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 7
+2026-05-03 12:38:42,338 - INFO - Analiz tamamlandı. Toplam kayıt: 7
+2026-05-03 12:38:43,130 - INFO - Yeni dosya işleniyor: Edge Case 2.xlsx
+2026-05-03 12:38:43,141 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 7
+2026-05-03 12:38:43,150 - INFO - Analiz tamamlandı. Toplam kayıt: 7
+2026-05-03 12:38:47,592 - INFO - Yeni dosya işleniyor: Edge Case 2.xlsx
+2026-05-03 12:38:47,608 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 7
+2026-05-03 12:38:47,619 - INFO - Analiz tamamlandı. Toplam kayıt: 7
+2026-05-03 12:38:48,478 - INFO - Yeni dosya işleniyor: Edge Case 2.xlsx
+2026-05-03 12:38:48,504 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 7
+2026-05-03 12:38:48,535 - INFO - Analiz tamamlandı. Toplam kayıt: 7
+2026-05-03 12:38:53,662 - INFO - Yeni dosya işleniyor: Edge Case 2.xlsx
+2026-05-03 12:38:53,680 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 7
+2026-05-03 12:38:53,702 - INFO - Analiz tamamlandı. Toplam kayıt: 7
+2026-05-03 12:38:54,719 - INFO - Yeni dosya işleniyor: Edge Case 2.xlsx
+2026-05-03 12:38:54,735 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 7
+2026-05-03 12:38:54,744 - INFO - Analiz tamamlandı. Toplam kayıt: 7
+2026-05-03 12:39:19,932 - INFO - Yeni dosya işleniyor: Edge Case 2.xlsx
+2026-05-03 12:39:19,953 - INFO - 'Açıklama' sütunu için skor tabanlı sınıflandırma başlatılıyor. Toplam satır: 7
+2026-05-03 12:39:19,973 - INFO - Analiz tamamlandı. Toplam kayıt: 7

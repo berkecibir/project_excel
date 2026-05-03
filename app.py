@@ -98,7 +98,8 @@ class NCRAppUI:
     def process_file(self, uploaded_file):
         try:
             self.logger.info(f"Yeni dosya işleniyor: {uploaded_file.name}")
-            df = pd.read_excel(uploaded_file)
+            with st.spinner("Excel dosyası okunuyor, lütfen bekleyin (Büyük dosyalarda biraz zaman alabilir)..."):
+                df = pd.read_excel(uploaded_file, engine="calamine")
             kolonlar = df.columns.tolist()
             
             aciklama_kolonu = "Açıklama"
@@ -128,22 +129,7 @@ class NCRAppUI:
             st.info("Lütfen geçerli bir Excel dosyası yüklediğinizden emin olun.")
 
     def render_filters_and_results(self, df, aciklama_kolonu, belirsizler):
-        st.subheader("Verileri Filtrele")
-        secilen_kategoriler = st.multiselect(
-            "Görüntülemek istediğiniz iş kalemlerini seçin:",
-            options=["Kaba İş", "İnce İş", "Doğrama", "İş Güvenliği (İSG)", "Elektrik İşleri", "Diğer / Belirsiz"],
-            default=["Kaba İş", "İnce İş", "Doğrama", "İş Güvenliği (İSG)", "Elektrik İşleri", "Diğer / Belirsiz"]
-        )
-        
-        filtered_df = df[df['İş Kalemi'].isin(secilen_kategoriler)].copy()
-        
-        # Kayıt Numaralarını 1'den başlatma (Kullanıcı talebi)
-        filtered_df.index = np.arange(1, len(filtered_df) + 1)
-        filtered_df.index.name = "Kayıt No"
-        
-        st.dataframe(filtered_df, use_container_width=True)
-        
-        st.subheader("İstatistikler")
+        st.subheader("Genel İstatistikler")
         col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
         kategori_sayilari = df['İş Kalemi'].value_counts()
         
@@ -154,6 +140,29 @@ class NCRAppUI:
         col5.metric("İSG", kategori_sayilari.get("İş Güvenliği (İSG)", 0))
         col6.metric("Elektrik", kategori_sayilari.get("Elektrik İşleri", 0))
         col7.metric("Belirsiz", kategori_sayilari.get("Diğer / Belirsiz", 0))
+
+        st.divider()
+
+        st.subheader("Verileri Filtrele")
+        options = ["Kaba İş", "İnce İş", "Doğrama", "İş Güvenliği (İSG)", "Elektrik İşleri", "Diğer / Belirsiz"]
+        secilen_kategoriler = st.pills(
+            "Görüntülemek istediğiniz iş kalemlerini seçin:",
+            options=options,
+            default=options,
+            selection_mode="multi"
+        )
+        
+        if not secilen_kategoriler:
+            st.warning("Lütfen görüntülemek için en az bir iş kalemi seçin.")
+            return
+
+        filtered_df = df[df['İş Kalemi'].isin(secilen_kategoriler)].copy()
+        
+        # Kayıt Numaralarını 1'den başlatma (Kullanıcı talebi)
+        filtered_df.index = np.arange(1, len(filtered_df) + 1)
+        filtered_df.index.name = "Kayıt No"
+        
+        st.dataframe(filtered_df, use_container_width=True)
         
         st.subheader("Sonuçları İndir")
         output = io.BytesIO()
