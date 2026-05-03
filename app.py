@@ -119,7 +119,12 @@ class NCRAppUI:
                     self.logger.warning(f"Sınıflandırılamayan {len(belirsizler)} farklı açıklama bulundu.")
                 
                 self.logger.info(f"Analiz tamamlandı. Toplam kayıt: {len(df)}")
-                st.success("Sınıflandırma tamamlandı!")
+
+                col_success, col_reset = st.columns([8, 2])
+                col_success.success(f"✅ Sınıflandırma tamamlandı! Toplam {len(df)} kayıt analiz edildi.")
+                if col_reset.button("🔄 Yeni Dosya Yükle", type="secondary", use_container_width=True):
+                    st.session_state.clear()
+                    st.rerun()
                 
                 self.render_filters_and_results(df, aciklama_kolonu, belirsizler)
                 
