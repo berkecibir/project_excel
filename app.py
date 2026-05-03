@@ -52,11 +52,22 @@ class NCRClassifier:
         # Sütunu string olarak al
         text_series = df[column_name].astype(str)
         
+        # Bazı kategorilerin önceliği (ağırlığı) daha fazladır.
+        # Örneğin: İnce İş detaydır, "Doğrama" ve "İnce" çakışırsa İnce kazansın diye ağırlığı 1.6 yaptık.
+        AGIRLIKLAR = {
+            "İnce İş": 1.6,
+            "İş Güvenliği (İSG)": 2.0
+        }
+        
         for kategori, kelimeler in self.KATEGORILER.items():
             # Tüm kelimeleri aramak için pattern oluşturuyoruz.
             # Her bir kelimenin metin içinde kaç defa geçtiğini sayıyoruz.
             pattern = '|'.join([re.escape(k) for k in kelimeler])
-            scores_df[kategori] = text_series.str.count(pattern, flags=re.IGNORECASE)
+            count = text_series.str.count(pattern, flags=re.IGNORECASE)
+            
+            # Kategoriye özel ağırlık çarpanını uygula (yoksa 1.0 ile çarp)
+            weight = AGIRLIKLAR.get(kategori, 1.0)
+            scores_df[kategori] = count * weight
         
         # En yüksek skora sahip kategoriyi bul
         # max(axis=1) ile her satırın en yüksek skorunu buluyoruz.
