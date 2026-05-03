@@ -145,11 +145,24 @@ class NCRAppUI:
 
         st.subheader("Verileri Filtrele")
         options = ["Kaba İş", "İnce İş", "Doğrama", "İş Güvenliği (İSG)", "Elektrik İşleri", "Diğer / Belirsiz"]
+        
+        if "pill_kategoriler" not in st.session_state:
+            st.session_state.pill_kategoriler = options
+
+        col_b1, col_b2, _ = st.columns([2, 2, 8])
+        if col_b1.button("✅ Tümünü Seç", use_container_width=True):
+            st.session_state.pill_kategoriler = options
+            st.rerun()
+            
+        if col_b2.button("🗑️ Tümünü Temizle", use_container_width=True):
+            st.session_state.pill_kategoriler = []
+            st.rerun()
+
         secilen_kategoriler = st.pills(
             "Görüntülemek istediğiniz iş kalemlerini seçin:",
             options=options,
-            default=options,
-            selection_mode="multi"
+            selection_mode="multi",
+            key="pill_kategoriler"
         )
         
         if not secilen_kategoriler:
