@@ -35,7 +35,8 @@ class NCRClassifier:
         "Kaba İş": ["beton", "demir", "kalıp", "paspayı", "kolon", "kiriş", "döşeme", "çatlak", "segregasyon"],
         "İnce İş": ["seramik", "boya", "sıva", "alçı", "diş yapmış", "fayans", "derz", "parke", "şap", "kaplama"],
         "Doğrama": ["pencere", "kapı", "cam", "menteşe", "alüminyum", "pvc", "kulp", "fitil", "pervaz"],
-        "İş Güvenliği (İSG)": ["güvenlik", "levha", "baret", "kemer", "file", "korkuluk", "isg", "uyarı", "şantiye", "iskele"]
+        "İş Güvenliği (İSG)": ["güvenlik", "levha", "baret", "kemer", "file", "korkuluk", "isg", "uyarı", "şantiye", "iskele"],
+        "Elektrik İşleri": ["elektrik", "kablo", "pano", "sigorta", "priz", "anahtar", "aydınlatma", "armatür", "tava"]
     }
     
     def __init__(self, logger):
@@ -119,8 +120,8 @@ class NCRAppUI:
         st.subheader("Verileri Filtrele")
         secilen_kategoriler = st.multiselect(
             "Görüntülemek istediğiniz iş kalemlerini seçin:",
-            options=["Kaba İş", "İnce İş", "Doğrama", "İş Güvenliği (İSG)", "Diğer / Belirsiz"],
-            default=["Kaba İş", "İnce İş", "Doğrama", "İş Güvenliği (İSG)", "Diğer / Belirsiz"]
+            options=["Kaba İş", "İnce İş", "Doğrama", "İş Güvenliği (İSG)", "Elektrik İşleri", "Diğer / Belirsiz"],
+            default=["Kaba İş", "İnce İş", "Doğrama", "İş Güvenliği (İSG)", "Elektrik İşleri", "Diğer / Belirsiz"]
         )
         
         filtered_df = df[df['İş Kalemi'].isin(secilen_kategoriler)].copy()
@@ -132,7 +133,7 @@ class NCRAppUI:
         st.dataframe(filtered_df, use_container_width=True)
         
         st.subheader("İstatistikler")
-        col1, col2, col3, col4, col5, col6 = st.columns(6)
+        col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
         kategori_sayilari = df['İş Kalemi'].value_counts()
         
         col1.metric("Toplam", len(df))
@@ -140,7 +141,8 @@ class NCRAppUI:
         col3.metric("İnce İş", kategori_sayilari.get("İnce İş", 0))
         col4.metric("Doğrama", kategori_sayilari.get("Doğrama", 0))
         col5.metric("İSG", kategori_sayilari.get("İş Güvenliği (İSG)", 0))
-        col6.metric("Belirsiz", kategori_sayilari.get("Diğer / Belirsiz", 0))
+        col6.metric("Elektrik", kategori_sayilari.get("Elektrik İşleri", 0))
+        col7.metric("Belirsiz", kategori_sayilari.get("Diğer / Belirsiz", 0))
         
         st.subheader("Sonuçları İndir")
         output = io.BytesIO()
